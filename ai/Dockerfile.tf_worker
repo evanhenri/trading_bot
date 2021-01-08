@@ -1,0 +1,57 @@
+FROM gcr.io/tensorflow/tensorflow:latest-gpu
+
+## Install nvidia-docker and nvidia-docker-plugin
+#wget -P /tmp https://github.com/NVIDIA/nvidia-docker/releases/download/v1.0.1/nvidia-docker_1.0.1-1_amd64.deb
+#sudo dpkg -i /tmp/nvidia-docker*.deb && rm /tmp/nvidia-docker*.deb
+#
+## Test nvidia-smi
+#nvidia-docker run --rm nvidia/cuda nvidia-smi
+
+RUN set -ex \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends \
+        build-essential \
+        wget \
+        libncursesw5-dev \
+        libssl-dev \
+        libgdbm-dev \
+        libc6-dev \
+        libsqlite3-dev \
+        tk-dev \
+        libbz2-dev \
+    && rm -rf /var/lib/apt/lists/* \
+    && wget --no-check-certificate -O python.tar.xz "https://www.python.org/ftp/python/3.6.3/Python-3.6.3.tar.xz" \
+    && mkdir -p /usr/src/python \
+    && tar -xJC /usr/src/python --strip-components=1 -f python.tar.xz \
+    && rm python.tar.xz \
+    && cd /usr/src/python \
+    && ./configure \
+		--build="$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)" \
+		--enable-loadable-sqlite-extensions \
+		--enable-shared \
+		--prefix=/usr/local \
+		--with-system-expat \
+		--with-system-ffi \
+        --without-ensurepip \
+        LDFLAGS="-Wl,--rpath=/usr/local/lib" \
+    && make \
+    && make install \
+    && cd /usr/local/bin \
+	&& ln -s idle3 idle \
+	&& ln -s pydoc3 pydoc \
+	&& ln -s python3 python \
+    && ln -s python3-config python-config \
+    && wget --no-check-certificate -O get-pip.py 'https://bootstrap.pypa.io/get-pip.py' \
+    && python get-pip.py \
+        --disable-pip-version-check \
+		--no-cache-dir \
+		"pip==9.0.1" \
+    && find /usr/local -depth \
+            \( \
+                \( -type d -a \( -name test -o -name tests \) \) \
+                -o \
+                \( -type f -a \( -name '*.pyc' -o -name '*.pyo' \) \) \
+            \) -exec rm -rf '{}' + \
+    && rm -rf get-pip.py /usr/src/python
+
+RUN pip install tensorflow-gpu ipython

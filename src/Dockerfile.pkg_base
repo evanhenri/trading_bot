@@ -1,0 +1,9 @@
+FROM python:3.6.3
+
+ENV SRC_ROOT /usr/src
+RUN mkdir -p ${SRC_ROOT}
+WORKDIR ${SRC_ROOT}
+ENTRYPOINT ["python3"]
+
+ONBUILD COPY . ${SRC_ROOT}
+ONBUILD RUN pip install --no-cache-dir ${SRC_ROOT}/pkg

@@ -1,0 +1,2 @@
+FROM evanhenri/pkg-base:0.1.0
+CMD ["stream.py", "gemini", "--patterns", "ETHBTC"]

@@ -1,0 +1,15 @@
+// Put this before importing bootstrap's scss since it changes the values of
+// some of bootstrap's variables.
+$enable-grid-classes: false;
+$tooltip-max-width: 90%;
+@import '~bootstrap/scss/bootstrap.scss';
+@import '~bootstrap-vue/dist/bootstrap-vue.css';
+
+.container {
+  @include make-container();
+  @include make-container-max-widths();
+}
+
+header, main {
+  margin: 10px;
+}

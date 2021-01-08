@@ -1,0 +1,2 @@
+FROM evanhenri/pkg-base:latest
+CMD ["process.py", "train", "--market", "BTC_ETH"]

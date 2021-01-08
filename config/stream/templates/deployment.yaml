@@ -1,0 +1,52 @@
+{{- $dbHost := printf "%s-%s" .Chart.Name .Values.dbHost -}}
+
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ template "fullname" . }}
+  labels:
+    app: {{ template "name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: {{ .Values.image.name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: {{ .Values.image.command }}
+          args: {{ .Values.image.args }}
+          env:
+          - name: DB_HOST
+            value: {{ $dbHost }}
+          - name: DB_NAME
+            value: {{ .Values.postgresql.postgresDatabase | quote }}
+          - name: DB_PASS
+            value: {{ .Values.postgresql.postgresPassword | quote }}
+          - name: DB_PORT
+            value: {{ default 5432 .Values.postgresql.postgresPort | quote }}
+          - name: DB_USER
+            value: {{ .Values.postgresql.postgresUser | quote }}
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+      initContainers:
+      - name: init-postgresql
+        image: postgres:latest
+        command: [ "sh", "-c", "until pg_isready --host={{ $dbHost }} --port={{ .Values.postgresql.postgresPort }} --username={{ .Values.postgresql.postgresUser }}; do echo waiting for {{ $dbHost }}; sleep 2; done;" ]
+
+    {{- if .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml .Values.nodeSelector | indent 8 }}
+    {{- end }}
+
+    {{- if .Values.imagePullSecrets }}
+      imagePullSecrets:
+{{ toYaml .Values.imagePullSecrets | indent 8 }}
+    {{- end }}

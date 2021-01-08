@@ -1,0 +1,21 @@
+replicaCount: 1
+image:
+  name: stream
+  repository: evanhenri/stream
+  tag: 0.1.0
+  pullPolicy: Always
+service:
+  type: ClusterIP
+  externalPort: 8080
+  internalPort: 8080
+ingress:
+  enabled: false
+imagePullSecrets:
+- name: registry-secret
+
+postgresql:
+  postgresDatabase: postgres
+  postgresPassword: pass123
+  postgresUser: postgres
+
+dbHost: postgresql
